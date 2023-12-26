@@ -20,7 +20,7 @@ fn create_file(path: &str) -> Result<File, std::io::Error> {
 pub fn handle(day: Day) {
     let input_path = format!("data/inputs/{day}.txt");
     let example_path = format!("data/examples/{day}.txt");
-    let module_path = format!("src/bin/{day}.rs");
+    let module_path = format!("solutions/src/bin/{day}.rs");
 
     let mut file = match safe_create_file(&module_path) {
         Ok(file) => file,

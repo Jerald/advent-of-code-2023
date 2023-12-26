@@ -83,7 +83,14 @@ pub mod child_commands {
         }
 
         let day_padded = day.to_string();
-        let mut args = vec!["run", "--quiet", "--bin", &day_padded];
+        let mut args = vec![
+            "run",
+            "--quiet",
+            "--bin",
+            &day_padded,
+            "--package",
+            "solutions",
+        ];
 
         if is_release {
             args.push("--release");

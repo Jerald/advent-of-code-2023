@@ -18,21 +18,42 @@ pub const ANSI_RESET: &str = "\x1b[0m";
 /// Helper function that reads a text file to a string.
 #[must_use]
 pub fn read_file(folder: &str, day: Day) -> String {
-    let cwd = env::current_dir().unwrap();
-    let filepath = cwd.join("data").join(folder).join(format!("{day}.txt"));
-    let f = fs::read_to_string(filepath);
+    let base_dir = {
+        let mut cwd = env::current_dir().unwrap();
+        if cwd.ends_with("solutions") {
+            cwd.pop();
+        }
+
+        cwd
+    };
+
+    let data_path = base_dir
+        .join("data")
+        .join(folder)
+        .join(format!("{day}.txt"));
+
+    let f = fs::read_to_string(data_path);
     f.expect("could not open input file")
 }
 
 /// Helper function that reads a text file to string, appending a part suffix. E.g. like `01-2.txt`.
 #[must_use]
 pub fn read_file_part(folder: &str, day: Day, part: u8) -> String {
-    let cwd = env::current_dir().unwrap();
-    let filepath = cwd
+    let base_dir = {
+        let mut cwd = env::current_dir().unwrap();
+        if cwd.ends_with("solutions") {
+            cwd.pop();
+        }
+
+        cwd
+    };
+
+    let data_path = base_dir
         .join("data")
         .join(folder)
         .join(format!("{day}-{part}.txt"));
-    let f = fs::read_to_string(filepath);
+    
+    let f = fs::read_to_string(data_path);
     f.expect("could not open input file")
 }
 
@@ -59,10 +80,12 @@ macro_rules! solution {
         #[global_allocator]
         static ALLOC: dhat::Alloc = dhat::Alloc;
 
-        fn main() {
+        fn main() -> anyhow::Result<()> {
             use $crate::template::runner::*;
             let input = $crate::template::read_file("inputs", DAY);
-            $( run_part($func, &input, DAY, $part); )*
+            $( let _ = run_part($func, &input, DAY, $part); )*
+
+            Ok(())
         }
     };
 }
