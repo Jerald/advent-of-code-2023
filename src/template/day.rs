@@ -24,7 +24,7 @@ pub struct Day(u8);
 impl Day {
     /// Creates a [`Day`] from the provided value if it's in the valid range,
     /// returns [`None`] otherwise.
-    pub fn new(day: u8) -> Option<Self> {
+    pub const fn new(day: u8) -> Option<Self> {
         if day == 0 || day > 25 {
             return None;
         }
@@ -38,7 +38,7 @@ impl Day {
     }
 
     /// Converts the [`Day`] into an [`u8`].
-    pub fn into_inner(self) -> u8 {
+    pub const fn into_inner(self) -> u8 {
         self.0
     }
 }
@@ -121,14 +121,13 @@ impl Iterator for AllDays {
     type Item = Day;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.current > 25 {
-            return None;
+        match Day::new(self.current) {
+            day @ Some(_) => {
+                self.current += 1;
+                day
+            },
+            None => None
         }
-        // NOTE: the iterator starts at 1 and we have verified that the value is not above 25.
-        let day = Day(self.current);
-        self.current += 1;
-
-        Some(day)
     }
 }
 

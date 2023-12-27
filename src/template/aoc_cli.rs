@@ -1,10 +1,11 @@
 /// Wrapper module around the "aoc-cli" command-line.
 use std::{
+    ffi::OsString,
     fmt::Display,
     process::{Command, Output, Stdio},
 };
 
-use crate::template::Day;
+use crate::template::{DataFolder, Day};
 
 #[derive(Debug)]
 pub enum AocCommandError {
@@ -34,58 +35,55 @@ pub fn check() -> Result<(), AocCommandError> {
 }
 
 pub fn read(day: Day) -> Result<Output, AocCommandError> {
-    let puzzle_path = get_puzzle_path(day);
-
     let args = build_args(
         "read",
-        &[
+        [
             "--description-only".into(),
             "--puzzle-file".into(),
-            puzzle_path,
-        ],
+            DataFolder::Puzzles.path_with(day).into(),
+        ]
+        .into_iter(),
         day,
     );
 
-    call_aoc_cli(&args)
+    call_aoc_cli(args)
 }
 
 pub fn download(day: Day) -> Result<Output, AocCommandError> {
-    let input_path = get_input_path(day);
-    let puzzle_path = get_puzzle_path(day);
+    let input_path = DataFolder::Inputs.path_with(day);
+    let puzzle_path = DataFolder::Puzzles.path_with(day);
 
     let args = build_args(
         "download",
-        &[
+        [
             "--overwrite".into(),
             "--input-file".into(),
-            input_path.to_string(),
+            input_path.clone().into(),
             "--puzzle-file".into(),
-            puzzle_path.to_string(),
-        ],
+            puzzle_path.clone().into(),
+        ].into_iter(),
         day,
     );
 
-    let output = call_aoc_cli(&args)?;
+    let output = call_aoc_cli(args)?;
     println!("---");
-    println!("🎄 Successfully wrote input to \"{}\".", &input_path);
-    println!("🎄 Successfully wrote puzzle to \"{}\".", &puzzle_path);
+    println!(
+        "🎄 Successfully wrote input to \"{}\".",
+        input_path.display()
+    );
+    println!(
+        "🎄 Successfully wrote puzzle to \"{}\".",
+        puzzle_path.display()
+    );
     Ok(output)
 }
 
 pub fn submit(day: Day, part: u8, result: &str) -> Result<Output, AocCommandError> {
     // workaround: the argument order is inverted for submit.
-    let mut args = build_args("submit", &[], day);
-    args.push(part.to_string());
-    args.push(result.to_string());
-    call_aoc_cli(&args)
-}
+    let args = build_args("submit", std::iter::empty(), day)
+        .chain([part.to_string().into(), result.to_string().into()]);
 
-fn get_input_path(day: Day) -> String {
-    format!("data/inputs/{day}.txt")
-}
-
-fn get_puzzle_path(day: Day) -> String {
-    format!("data/puzzles/{day}.md")
+    call_aoc_cli(args)
 }
 
 fn get_year() -> Option<u16> {
@@ -95,20 +93,28 @@ fn get_year() -> Option<u16> {
     }
 }
 
-fn build_args(command: &str, args: &[String], day: Day) -> Vec<String> {
-    let mut cmd_args = args.to_vec();
+fn build_args(
+    command: &str,
+    args: impl Iterator<Item = OsString>,
+    day: Day,
+) -> impl Iterator<Item = OsString> {
+    let mut extra_args = Vec::new();
 
     if let Some(year) = get_year() {
-        cmd_args.push("--year".into());
-        cmd_args.push(year.to_string());
+        extra_args.push("--year".into());
+        extra_args.push(year.to_string().into());
     }
 
-    cmd_args.append(&mut vec!["--day".into(), day.to_string(), command.into()]);
+    extra_args.append(&mut vec![
+        "--day".into(),
+        day.to_string().into(),
+        command.into(),
+    ]);
 
-    cmd_args
+    args.chain(extra_args)
 }
 
-fn call_aoc_cli(args: &[String]) -> Result<Output, AocCommandError> {
+fn call_aoc_cli(args: impl Iterator<Item = OsString>) -> Result<Output, AocCommandError> {
     // println!("Calling >aoc with: {}", args.join(" "));
     let output = Command::new("aoc")
         .args(args)
