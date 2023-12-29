@@ -1,3 +1,5 @@
+use solutions::prelude::*;
+
 advent_of_code::solution!(%DAY_NUMBER%);
 
 pub fn part_one(input: &str) -> anyhow::Result<u32> {
