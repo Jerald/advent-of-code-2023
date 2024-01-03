@@ -166,21 +166,22 @@ pub fn part_two(input: &str) -> anyhow::Result<u32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use advent_of_code::template::{self, DataFile, DataFolder};
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&advent_of_code::template::read_file_part(
-            "examples", DAY, 1,
-        ))
+        let result = part_one(
+            &template::read_data_file(DataFolder::Examples, DataFile::DayPart(DAY, 1)).unwrap(),
+        )
         .unwrap();
         assert_eq!(result, 142)
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file_part(
-            "examples", DAY, 2,
-        ))
+        let result = part_two(
+            &template::read_data_file(DataFolder::Examples, DataFile::DayPart(DAY, 2)).unwrap(),
+        )
         .unwrap();
         assert_eq!(result, 281);
     }
